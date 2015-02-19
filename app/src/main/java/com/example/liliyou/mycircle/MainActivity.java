@@ -7,6 +7,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -22,6 +23,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Random;
 
@@ -51,39 +53,52 @@ public class MainActivity extends Activity {
             if (currentAnimation != null) {
                 currentAnimation.cancel();
             }
+
             Random ran = new Random();
             String s;
             switch (v.getId()) {
                 case R.id.bt_style_0:
+                    btStyle0.setBackgroundColor(Color.parseColor("#80bebebe"));//80bebebe
+                    btStyle1.setBackgroundColor(Color.parseColor("#80bebebe"));
+                    btStyle2.setBackgroundColor(Color.parseColor("#80bebebe"));
                     quack = true;
-//                    if(mothod==0){
-//                        s=String.valueOf(ran.nextInt(ramdrange));
-//                        textView01.setText(s);
-//                    }else {
-//                        s=String.valueOf(ran.nextInt(2));
-//                        if(ran.nextInt(2)==0)
-//                        {
-//                            textView01.setText("O");
-//                        }
-//                        else{
-//
-//                            textView01.setText("X");
-//                        }
-//                    }
-
-//                    textView01.setText(s);
+                    btStyle0.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+                    if (mothod == 1) {
+                        btStyle1.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+                    } else {
+                        btStyle2.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+                    }
+                    Toast.makeText(MainActivity.this
+                            , "只選取一次", Toast.LENGTH_LONG).show();
                     break;
                 case R.id.bt_style_1:
+                    btStyle0.setBackgroundColor(Color.parseColor("#80bebebe"));//80bebebe
+                    btStyle1.setBackgroundColor(Color.parseColor("#80bebebe"));
+                    btStyle2.setBackgroundColor(Color.parseColor("#80bebebe"));
                     mothod = 1;
+                    btStyle1.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+                    settings = getSharedPreferences(data, 0);
+                    settings.edit()
+                            .putInt("mothod", 1)
+                            .commit();
                     quack = false;
                     textView01.setText("X");
                     break;
                 case R.id.bt_style_2:
+                    btStyle0.setBackgroundColor(Color.parseColor("#80bebebe"));//80bebebe
+                    btStyle1.setBackgroundColor(Color.parseColor("#80bebebe"));
+                    btStyle2.setBackgroundColor(Color.parseColor("#80bebebe"));
                     mothod = 0;
+                    btStyle2.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+                    settings = getSharedPreferences(data, 0);
+                    settings.edit()
+                            .putInt("mothod", 0)
+                            .commit();
                     quack = false;
                     textView01.setText("0");
                     break;
                 case R.id.iv_drawable:
+
                     if (quack) {
 
                         if (mothod == 0) {
@@ -151,7 +166,11 @@ public class MainActivity extends Activity {
         btStyle2 = (TextView) findViewById(R.id.bt_style_2);
         //取得資料
 //        String PREFS_NAME = "test.this.activity";//一個標籤 可以設定為代表此APP的String Tag
-
+        if (mothod == 1) {
+            btStyle1.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+        } else {
+            btStyle2.setBackgroundColor(Color.parseColor("#D5BEBEBE"));
+        }
 
         settings = getSharedPreferences(data, 0);
         ramdrange = settings.getInt(nameField, 49);
@@ -216,7 +235,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-
 
 
         drawable = new CircularProgressDrawable.Builder()
