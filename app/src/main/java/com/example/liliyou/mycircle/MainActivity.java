@@ -6,6 +6,9 @@ import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,16 +20,30 @@ import android.view.animation.CycleInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.util.Random;
 
 public class MainActivity extends Activity {
 
     // Views
     ImageView ivDrawable;
-    Button btStyle1;
-    Button btStyle2;
-    Button btStyle3;
-    Button btStyle4;
+    Handler myHandler;
+    TextView textView01;
 
+    TextView btStyle0;
+    TextView btStyle1;
+    TextView btStyle2;
+    int ramdrange = 49;
+    //    Button btStyle3;
+//    Button btStyle4;
+    int mothod = 0;//
+    boolean quack = false;
+    private SharedPreferences settings;
+    private static final String data = "DATA";
+    private static final String nameField = "NAME";
+    //呼叫案例方法
     CircularProgressDrawable drawable;
     View.OnClickListener listener = new View.OnClickListener() {
         @Override
@@ -34,23 +51,89 @@ public class MainActivity extends Activity {
             if (currentAnimation != null) {
                 currentAnimation.cancel();
             }
+            Random ran = new Random();
+            String s;
             switch (v.getId()) {
+                case R.id.bt_style_0:
+                    quack = true;
+//                    if(mothod==0){
+//                        s=String.valueOf(ran.nextInt(ramdrange));
+//                        textView01.setText(s);
+//                    }else {
+//                        s=String.valueOf(ran.nextInt(2));
+//                        if(ran.nextInt(2)==0)
+//                        {
+//                            textView01.setText("O");
+//                        }
+//                        else{
+//
+//                            textView01.setText("X");
+//                        }
+//                    }
+
+//                    textView01.setText(s);
+                    break;
                 case R.id.bt_style_1:
-                    currentAnimation = prepareStyle1Animation();
+                    mothod = 1;
+                    quack = false;
+                    textView01.setText("X");
                     break;
                 case R.id.bt_style_2:
-                    currentAnimation = prepareStyle2Animation();
+                    mothod = 0;
+                    quack = false;
+                    textView01.setText("0");
                     break;
-                case R.id.bt_style_3:
-                    currentAnimation = prepareStyle3Animation();
+                case R.id.iv_drawable:
+                    if (quack) {
+
+                        if (mothod == 0) {
+                            s = String.valueOf(ran.nextInt(ramdrange));
+                            textView01.setText(s);
+                        } else {
+                            s = String.valueOf(ran.nextInt(2));
+                            if (ran.nextInt(2) == 0) {
+                                textView01.setText("O");
+                            } else {
+
+                                textView01.setText("X");
+                            }
+                        }
+
+                        currentAnimation = preparePulseAnimation();
+                        currentAnimation.start();
+                    } else {
+                        new Thread(new Runnable() {
+                            public void run() {
+                                try {
+                                    Thread.sleep(600);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                }
+
+                                for (int i = 0; i < 18; i++) {
+
+                                    try {
+                                        Thread.sleep(100);
+                                        Message message = new Message();
+                                        message.what = 1;
+                                        myHandler.sendMessage(message);
+
+                                    } catch (InterruptedException e) {
+                                        Thread.currentThread().interrupt();
+                                    }
+                                }
+
+                            }
+                        }).start();
+                        currentAnimation = prepare5PulseAnimation();
+                        currentAnimation.start();
+                    }
                     break;
-                case R.id.bt_style_4:
                 default:
-                    currentAnimation = preparePulseAnimation();
                     break;
 
             }
-            currentAnimation.start();
+
         }
     };
 
@@ -59,17 +142,82 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.new_main);
+        SeekBar sk = (SeekBar) findViewById(R.id.seekBar);
+        ivDrawable = (ImageView) findViewById(R.id.iv_drawable);
+        textView01 = (TextView) findViewById(R.id.textView);
+        btStyle0 = (TextView) findViewById(R.id.bt_style_0);
+        btStyle1 = (TextView) findViewById(R.id.bt_style_1);
+        btStyle2 = (TextView) findViewById(R.id.bt_style_2);
+        //取得資料
+//        String PREFS_NAME = "test.this.activity";//一個標籤 可以設定為代表此APP的String Tag
+
+
+        settings = getSharedPreferences(data, 0);
+        ramdrange = settings.getInt(nameField, 49);
+        sk.setProgress(ramdrange);
+        textView01.setText(String.valueOf(ramdrange));
+        sk.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                quack = false;
+                if (progress != 0) {
+                    ramdrange = progress;
+                } else {
+                    ramdrange = 1;
+                }
+                mothod = 0;
+                textView01.setText(String.valueOf(progress));
+                //存入資料
+
+                settings = getSharedPreferences(data, 0);
+                settings.edit()
+                        .putInt(nameField, progress)
+                        .commit();
+            }
+        });
+        myHandler = new Handler() {
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case 1:
+
+                        Random ran = new Random();
+                        String s;
+                        if (mothod == 0) {
+                            s = String.valueOf(ran.nextInt(ramdrange));
+                            textView01.setText(s);
+                        } else {
+                            s = String.valueOf(ran.nextInt(2));
+                            if (ran.nextInt(2) == 0) {
+                                textView01.setText("O");
+                            } else {
+
+                                textView01.setText("X");
+                            }
+                        }
+                        break;
+                }
+                super.handleMessage(msg);
+            }
+        };
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        ivDrawable = (ImageView) findViewById(R.id.iv_drawable);
-        btStyle1 = (Button) findViewById(R.id.bt_style_1);
-        btStyle2 = (Button) findViewById(R.id.bt_style_2);
-        btStyle3 = (Button) findViewById(R.id.bt_style_3);
-        btStyle4 = (Button) findViewById(R.id.bt_style_4);
+
+
 
         drawable = new CircularProgressDrawable.Builder()
                 .setRingWidth(getResources().getDimensionPixelSize(R.dimen.drawable_ring_size))
@@ -83,10 +231,9 @@ public class MainActivity extends Activity {
 
     private void hookUpListeners() {
         ivDrawable.setOnClickListener(listener);
+        btStyle0.setOnClickListener(listener);
         btStyle1.setOnClickListener(listener);
         btStyle2.setOnClickListener(listener);
-        btStyle3.setOnClickListener(listener);
-        btStyle4.setOnClickListener(listener);
 
     }
 
@@ -99,6 +246,36 @@ public class MainActivity extends Activity {
         Animator animation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.CIRCLE_SCALE_PROPERTY,
                 drawable.getCircleScale(), 0.65f);
         animation.setDuration(120);
+        return animation;
+    }
+
+    private Animator prepare5PulseAnimation() {
+        AnimatorSet animation = new AnimatorSet();
+
+        ObjectAnimator progressAnimation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 1f, 0f);
+        progressAnimation.setDuration(1200);
+        progressAnimation.setInterpolator(new AnticipateInterpolator());
+
+        Animator innerCircleAnimation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.CIRCLE_SCALE_PROPERTY, 0.75f, 0.60f);
+        innerCircleAnimation.setDuration(600);
+        innerCircleAnimation.setInterpolator(new AnticipateInterpolator());
+
+        Animator innerCircleAnimation1 = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.CIRCLE_SCALE_PROPERTY, 0.60f, 0.80f);
+        innerCircleAnimation1.setDuration(600);
+        innerCircleAnimation1.setStartDelay(600);
+        innerCircleAnimation1.setInterpolator(new AnticipateInterpolator());
+
+        ObjectAnimator invertedProgress = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 0f, 1f);
+        invertedProgress.setDuration(1200);
+        invertedProgress.setStartDelay(2000);
+        invertedProgress.setInterpolator(new OvershootInterpolator());
+
+        Animator invertedCircle = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.CIRCLE_SCALE_PROPERTY, 0.80f, 0.75f);
+        invertedCircle.setDuration(1200);
+        invertedCircle.setStartDelay(1200);
+        invertedCircle.setInterpolator(new OvershootInterpolator());
+
+        animation.playTogether(progressAnimation, innerCircleAnimation, innerCircleAnimation1, invertedProgress, invertedCircle);
         return animation;
     }
 
@@ -168,7 +345,7 @@ public class MainActivity extends Activity {
         AnimatorSet animation = new AnimatorSet();
 
         ObjectAnimator progressAnimation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY,
-                0f, 1f);
+                0f, 0.5f);
         progressAnimation.setDuration(3600);
         progressAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
 
@@ -191,7 +368,7 @@ public class MainActivity extends Activity {
     private Animator prepareStyle3Animation() {
         AnimatorSet animation = new AnimatorSet();
 
-        ObjectAnimator progressAnimation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 0.75f, 0f);
+        ObjectAnimator progressAnimation = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 1f, 0f);
         progressAnimation.setDuration(1200);
         progressAnimation.setInterpolator(new AnticipateInterpolator());
 
@@ -199,7 +376,7 @@ public class MainActivity extends Activity {
         innerCircleAnimation.setDuration(1200);
         innerCircleAnimation.setInterpolator(new AnticipateInterpolator());
 
-        ObjectAnimator invertedProgress = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 0f, 0.75f);
+        ObjectAnimator invertedProgress = ObjectAnimator.ofFloat(drawable, CircularProgressDrawable.PROGRESS_PROPERTY, 0f, 1f);
         invertedProgress.setDuration(1200);
         invertedProgress.setStartDelay(3200);
         invertedProgress.setInterpolator(new OvershootInterpolator());
@@ -211,5 +388,23 @@ public class MainActivity extends Activity {
 
         animation.playTogether(progressAnimation, innerCircleAnimation, invertedProgress, invertedCircle);
         return animation;
+    }
+
+    class myThread implements Runnable {
+        public void run() {
+//            while (!Thread.currentThread().isInterrupted()) {
+            for (int i = 0; i < 5; i++) {
+                Message message = new Message();
+                message.what = 1;
+
+                myHandler.sendMessage(message);
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+//        }
     }
 }
